@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hrací kostky 3x D100</title>
+    <style>
+        /* CSS: Vzhled a stylování stránky */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: white;
+            padding: 35px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        p.popis {
+            color: #666;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        /* Řada pro 3 kostky vedle sebe */
+        .dice-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        /* Vizuální podoba stostěnné kostky (D100) */
+        .dice {
+            width: 100px;
+            height: 100px;
+            background-color: #fff;
+            border: 3px solid #333;
+            border-radius: 50%; /* Kulatý tvar pro D100 */
+            font-size: 38px;
+            font-weight: bold;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.08);
+            user-select: none;
+        }
+
+        /* Animace otáčení kostky */
+        @keyframes toceni {
+            0%   { transform: perspective(300px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1); }
+            25%  { transform: perspective(300px) rotateX(180deg) rotateY(90deg) rotateZ(90deg) scale(1.1); }
+            50%  { transform: perspective(300px) rotateX(360deg) rotateY(270deg) rotateZ(180deg) scale(0.95); }
+            75%  { transform: perspective(300px) rotateX(540deg) rotateY(180deg) rotateZ(270deg) scale(1.08); }
+            100% { transform: perspective(300px) rotateX(720deg) rotateY(360deg) rotateZ(360deg) scale(1); }
+        }
+
+        /* Třída, která se přidá kostce během hodu */
+        .dice.toci-se {
+            animation: toceni 0.6s ease-in-out infinite;
+            border-color: #007bff;
+            color: #007bff;
+        }
+
+        /* Zobrazení součtu */
+        .soucet {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* Tlačítko */
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #99caff;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Hrací kostky 3× D100</h1>
+        <p class="popis">Stostěnné kostky (čísla od 1 do 100)</p>
+        
+        <!-- HTML: Zde se zobrazují 3 kostky D100 -->
+        <div class="dice-container">
+            <div id="dice1" class="dice">?</div>
+            <div id="dice2" class="dice">?</div>
+            <div id="dice3" class="dice">?</div>
+        </div>
+
+        <div id="soucet" class="soucet">Součet: —</div>
+        
+        <!-- HTML: Tlačítko pro spuštění akce v JavaScriptu -->
+        <button id="tlacitko" onclick="hodKostkou()">Hodit kostkami</button>
+    </div>
+
+    <script>
+        // JAVASCRIPT: Logika aplikace
+        function hodKostkou() {
+            let idKostek = ["dice1", "dice2", "dice3"];
+            let tlacitko = document.getElementById("tlacitko");
+            let soucetElement = document.getElementById("soucet");
+
+            // Během točení zablokujeme tlačítko
+            tlacitko.disabled = true;
+            soucetElement.textContent = "Kostky se točí...";
+
+            let soucet = 0;
+            let zastavenoKostek = 0;
+
+            idKostek.forEach(function(id, index) {
+                let kostkaElement = document.getElementById(id);
+
+                // 1. Spustíme CSS animaci otáčení
+                kostkaElement.classList.add("toci-se");
+
+                // 2. Během otáčení rychle střídáme náhodná čísla od 1 do 100
+                let interval = setInterval(function() {
+                    kostkaElement.textContent = Math.floor(Math.random() * 100) + 1;
+                }, 60);
+
+                // 3. Zastavíme každou kostku po určité době (700ms, 950ms, 1200ms)
+                let dobaToceni = 700 + (index * 250);
+
+                setTimeout(function() {
+                    clearInterval(interval);
+                    kostkaElement.classList.remove("toci-se");
+
+                    // Vygeneruje konečné náhodné číslo od 1 do 100 (D100)
+                    let vysledneCislo = Math.floor(Math.random() * 100) + 1;
+                    kostkaElement.textContent = vysledneCislo;
+
+                    soucet += vysledneCislo;
+                    zastavenoKostek++;
+
+                    // Jakmile se zastaví všechny 3 kostky, zobrazíme celkový součet
+                    if (zastavenoKostek === 3) {
+                        soucetElement.textContent = "Součet: " + soucet;
+                        tlacitko.disabled = false;
+                    }
+                }, dobaToceni);
+            });
+        }
+    </script>
+
+</body>
+</html>
